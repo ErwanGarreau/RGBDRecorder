@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/text/files">
+        <file>suivre.txt</file>
+    </qresource>
+</RCC>
