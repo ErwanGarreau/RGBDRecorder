@@ -11,6 +11,18 @@
 #include <QTextStream>
 #include <stdio.h>
 #include <QString>
+#include <fstream>
+#include <iostream>
+#include <set>
+#include <vector>
+
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace filesystem = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace filesystem = std::experimental::filesystem;
+#endif
 #include "../recorder/VideoSource.h"
 #include "../recorder/RealSense.h"
 
@@ -34,13 +46,21 @@ private slots:
     void on_actionStart_triggered();
     void on_confirmation_clicked();
 
+    void on_actionStart_3_triggered();
+
 private:
     Ui::MainWindow *ui;
     VideoSource* rs;
     QMovie * gif;
     QMovie * saving;
-    QFile inputFile;
-    QTextStream* filereader;
+    QFile planFile;
+    QTextStream* planReader;
+    QFile nameFile;
+    QTextStream* nameReader;
+    std::map<std::string,QString> plans;
+    std::map<std::string,QString>::iterator it;
+    std::set<std::string> folders;
+    int name;
 
     bool play = false;
     void gestionEnregistrement();
@@ -48,8 +68,8 @@ private:
     void gestionExplications();
     void recVideo(std::string nom);
     void udpFrame();
-    QString loadText();
-    int name;
+    void advanceText();
+    void getNextPlan();
 
 
 };

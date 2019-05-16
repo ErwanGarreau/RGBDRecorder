@@ -2,6 +2,8 @@
 #define VIDEOSOURCE_H
 
 #include <opencv2/opencv.hpp>
+#include <set>
+#include <string>
 #include <utility>
 
 class VideoSource {
@@ -21,8 +23,10 @@ public :
     virtual int getTimePosition(){}
     virtual double getExactTimePosition(){}
     virtual void resetTime(){}
+    virtual std::set<std::string> findLastName() const{}
     virtual bool startRecording(std::string folderLoc){}
-    virtual bool stopRecording(std::string folderLoc){}
+    virtual bool stopRecording(std::string folderLoc, bool extractFrames){}
+    virtual void extractVideos(){}
 
 };
 

@@ -17,6 +17,7 @@ namespace filesystem = std::experimental::filesystem;
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+
 using namespace rs2;
 
 
@@ -32,7 +33,7 @@ public:
     cv::Mat getMappedFeed();
     void update();
     bool startRecording(std::string folderLoc = "b");
-    bool stopRecording(std::string folderLoc = "b");
+    bool stopRecording(std::string folderLoc = "b",bool extractFrames = false);
 
 
     cv::Mat getOriginalDepth(){return depthFeed;}
@@ -42,6 +43,8 @@ public:
     double getExactTimePosition() {return (std::clock() - startTime)/(double) CLOCKS_PER_SEC;}
     std::pair<int,int> getScreenSize(){return std::pair<int,int>(1280,720);}
     void resetTime() {startTime = std::clock();}
+    std::set<std::string> findLastName() const;
+    void extractVideos();
 
 private:
     cv::Mat frame_to_mat(const rs2::frame& f);
@@ -67,6 +70,7 @@ private:
     std::string homedir;
     filesystem::path directory;
     std::vector<int32_t> params;
+
 
 };
 #endif

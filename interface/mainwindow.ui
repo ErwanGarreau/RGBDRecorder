@@ -320,7 +320,15 @@ background-color: #ddd;
     </property>
     <addaction name="actionStart"/>
    </widget>
+   <widget class="QMenu" name="menuExtract_Videos">
+    <property name="title">
+     <string>Extract Videos</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionStart_3"/>
+   </widget>
    <addaction name="menuTest"/>
+   <addaction name="menuExtract_Videos"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -343,6 +351,16 @@ background-color: #ddd;
    </attribute>
   </widget>
   <action name="actionStart">
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </action>
+  <action name="actionStart_2">
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </action>
+  <action name="actionStart_3">
    <property name="text">
     <string>Start</string>
    </property>

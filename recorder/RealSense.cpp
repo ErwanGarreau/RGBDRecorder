@@ -50,12 +50,13 @@ bool RealSense::startRecording(std::string folderLoc) {
     }
 }
 
-bool RealSense::stopRecording(std::string folderLoc) {
+bool RealSense::stopRecording(std::string folderLoc,bool extractFrames) {
     rs2::config cfg;
     startTime = std::clock();
     pipe->stop();
 
-    this->saveVideo(homedir + folderLoc);
+    if (extractFrames)
+        this->saveVideo(homedir + folderLoc);
 
     pipe = std::make_shared<rs2::pipeline>();
 
@@ -82,7 +83,7 @@ void RealSense::saveVideo(std::string bagLoc) {
 
     rs2::config config;
     rs2::context context;
-    const rs2::playback playback = context.load_device(bagLoc+".bag");
+    const rs2::playback playback = context.load_device(bagLoc);
     const std::vector<rs2::sensor> sensors = playback.query_sensors();
     for( const rs2::sensor& sensor : sensors ){
         const std::vector<rs2::stream_profile> stream_profiles = sensor.get_stream_profiles();
@@ -97,6 +98,7 @@ void RealSense::saveVideo(std::string bagLoc) {
     pipeline_profile = pipe->start( config );
 
     // Set Non Real Time Playback to make sure that no frame is lost.
+    // Update : Non real time is broken right now on the software side. Changed to true until a patch
     auto profile = pipeline_profile.get_device().as<rs2::playback>();
     profile.set_real_time(true);
 
@@ -116,7 +118,9 @@ void RealSense::saveVideo(std::string bagLoc) {
 
 filesystem::path RealSense::createDirectories(std::string bagLoc)
 {
+    bagLoc = bagLoc.substr(0, bagLoc.length()-4);
     filesystem::path directory = bagLoc;
+
     if (!filesystem::exists(directory)) {
         if( !filesystem::create_directories( directory ) ){
             throw std::runtime_error( "Folder n'a pu etre cree." );
@@ -132,6 +136,54 @@ filesystem::path RealSense::createDirectories(std::string bagLoc)
     }
     return directory;
 }
+
+
+void RealSense::extractVideos() {
+
+    pipe->stop();
+    for(filesystem::directory_entry p: filesystem::directory_iterator(homedir))
+    {
+        if (filesystem::is_regular_file(p.symlink_status())){
+            std::string filename = p.path().u8string();
+            std::string ext = p.path().extension().u8string();
+            if (ext == ".bag") {
+                this->saveVideo(filename);
+            }
+        }
+    }
+
+}
+
+std::set<std::string> RealSense::findLastName() const{
+
+    std::set<std::string> name;
+    for(filesystem::directory_entry p: filesystem::directory_iterator(homedir))
+    {
+        if (filesystem::is_regular_file(p.symlink_status())){
+            std::string filename = p.path().stem().u8string();
+            name.insert(filename);
+        }
+    }
+    return name;
+}
+/*
+int RealSense::findLastName(){
+
+    int name = 0;
+    for(filesystem::directory_entry p: filesystem::directory_iterator(homedir))
+    {
+        if (filesystem::is_regular_file(p.symlink_status())){
+            std::string filename = p.path().stem().u8string();
+            char* p;
+            strtol(filename.c_str(), &p, 10);
+            if (!*p) {
+               int pos = std::stoi(filename);
+               name = std::max(pos,name);
+            }
+        }
+    }
+    return name;
+}*/
 
 /**
  * @brief RealSense::extractFrame

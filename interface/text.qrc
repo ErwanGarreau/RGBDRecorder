@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/text/files">
         <file>suivre.txt</file>
+        <file>list_plan.txt</file>
     </qresource>
 </RCC>

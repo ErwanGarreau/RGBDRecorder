@@ -4,22 +4,25 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    inputFile(":/text/files/suivre.txt")
+    planFile(":/text/files/suivre.txt"),
+    nameFile(":/text/files/list_plan.txt")
 {
     ui->setupUi(this);
     rs = new RealSense();
     ui->confirmation->setVisible(false);
     ui->demarre->setVisible(false);
 
-    inputFile.open(QIODevice::ReadOnly);
-    filereader = new QTextStream(&inputFile);
-    filereader->setCodec("UTF-8");
+    planFile.open(QIODevice::ReadOnly);
+    planReader = new QTextStream(&planFile);
+    planReader->setCodec("UTF-8");
 
-    QString text = this->loadText();
-    ui->textBrowser->append(text);
+    nameFile.open(QIODevice::ReadOnly);
+    nameReader = new QTextStream(&nameFile);
+    nameReader->setCodec("UTF-8");
     gif = new QMovie(":/images/gif/waiting.gif");
     ui->onGif->setMovie(gif);
     name = 0;
+    this->advanceText();
 }
 
 MainWindow::~MainWindow()
@@ -27,7 +30,8 @@ MainWindow::~MainWindow()
     delete ui;
     delete gif;
     delete rs;
-    delete filereader;
+    delete planReader;
+    delete nameReader;
 }
 
 /**
@@ -42,6 +46,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
+
 void MainWindow::on_demarre_clicked()
 {
     char t[32];
@@ -52,14 +57,14 @@ void MainWindow::on_demarre_clicked()
         gif->start();
         ui->demarre->setText("Arreter l'enregistrement");
         ui->confirmation->setVisible(false);
-        rs->startRecording(vidName);
+        rs->startRecording(it->first);
 
     }
     else {
         gif->stop();
         ui->demarre->setText("Démarrer l'enregistrement");
         ui->confirmation->setVisible(true);
-        rs->stopRecording(vidName);
+        rs->stopRecording(it->first,false);
 
     }
 
@@ -70,25 +75,38 @@ void MainWindow::on_actionStart_triggered()
     play = true;
     ui->demarre->setVisible(true);
     this->udpFrame();
+
 }
 
 void MainWindow::on_confirmation_clicked()
 {
     ui->confirmation->setVisible(false);
     name++;
-    QString text = this->loadText();
+    ++it;
     ui->textBrowser->clear();
-    ui->textBrowser->append(text);
-
+    ui->textBrowser->append(it->second);
 }
 
-/**
- * @brief MainWindow::loadText
- * @return The next action to do in the plan library
- */
-QString MainWindow::loadText(){
-    return filereader->readLine();
+void MainWindow::getNextPlan(){
+    for (auto it : rs->findLastName()){
+       if (plans.count(it) > 0)
+           plans.erase(it);
+    }
+    this->it = plans.begin();
+    ui->textBrowser->clear();
+    ui->textBrowser->append(it->second);
 }
+
+void MainWindow::advanceText(){
+    while (!(nameReader->atEnd() || planReader->atEnd())){
+        std::string name = nameReader->readLine().toUtf8().constData();
+        QString plan = planReader->readLine();
+        plans[name] = plan;
+    }
+
+    this->getNextPlan();
+}
+
 
 /**
  * @brief MainWindow::udpFrame
@@ -107,4 +125,9 @@ void MainWindow::udpFrame(){
             break;
 
     }
+}
+
+void MainWindow::on_actionStart_3_triggered()
+{
+    rs->extractVideos();
 }
